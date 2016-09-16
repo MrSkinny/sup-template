@@ -20,9 +20,13 @@ app.route('/users')
 
     .post(jsonParser, function(req, res){
         if (!req.body.username) return res.status(422).json({ message: "Missing field: username" });
+        if (!req.body.password) return res.status(422).json({ message: "Missing field: password" });
         if (typeof req.body.username !== 'string') return res.status(422).json({ message: "Incorrect field type: username" });
+        if (typeof req.body.password !== 'string') return res.status(422).json({ message: "Incorrect field type: password" });
         
-        User.create({ username: req.body.username }, function(err, user){
+        User.create({ username: req.body.username, password: req.body.password }, function(err, user){
+            if (err) return res.status(500).json(err);
+            
             res.status(201).location('/users/' + user._id).json({});
         });
     });
@@ -39,12 +43,14 @@ app.route('/users/:userId')
 
     .put(jsonParser, function(req, res){
         if (!req.body.username) return res.status(422).json({ message: "Missing field: username" });
+        if (!req.body.password) return res.status(422).json({ message: "Missing field: password" });
         if (typeof req.body.username !== 'string') return res.status(422).json({ message: "Incorrect field type: username" });
+        if (typeof req.body.password !== 'string') return res.status(422).json({ message: "Incorrect field type: password" });
         
         User.findOneAndUpdate({ _id: req.params.userId }, { username: req.body.username })
             .then(function(user){
                 if (!user) {
-                    User.create({ _id: req.params.userId, username: req.body.username })
+                    User.create({ _id: req.params.userId, username: req.body.username, password: req.body.password })
                         .then(function(){
                             return res.json({});
                         });

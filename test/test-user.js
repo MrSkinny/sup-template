@@ -40,7 +40,8 @@ describe('User endpoints', function() {
 
             it('should return a list of users', function() {
                 var user = {
-                    username: 'joe'
+                    username: 'joe',
+                    password: 'password'
                 };
 
                 // Create a user
@@ -69,7 +70,8 @@ describe('User endpoints', function() {
         describe('POST', function() {
             it('should allow adding a user', function() {
                 var user = {
-                    username: 'joe'
+                    username: 'joe',
+                    password: 'password'
                 };
 
                 // Add a user
@@ -124,7 +126,8 @@ describe('User endpoints', function() {
             });
             it('should reject non-string usernames', function() {
                 var user = {
-                    username: 42
+                    username: 42,
+                    password: 'password'
                 };
                 var spy = makeSpy();
                 // Add a user without a non-string username
@@ -178,7 +181,8 @@ describe('User endpoints', function() {
 
             it('should return a single user', function() {
                 var user = {
-                    username: 'joe'
+                    username: 'joe',
+                    password: 'password'
                 };
                 var userId;
                 // Add a user to the database
@@ -210,10 +214,12 @@ describe('User endpoints', function() {
         describe('PUT', function() {
             it('should allow editing a user', function() {
                 var oldUser = {
-                    username: 'joe'
+                    username: 'joe',
+                    password: 'password'
                 };
                 var newUser = {
-                    username: 'joe2'
+                    username: 'joe2',
+                    password: 'password'
                 };
                 var userId;
                 // Add a user to the database
@@ -249,7 +255,8 @@ describe('User endpoints', function() {
             it('should create a user if they don\'t exist', function() {
                 var user = {
                     _id: '000000000000000000000000',
-                    username: 'joe'
+                    username: 'joe',
+                    password: 'password'
                 };
                 // Request to add a new user
                 return chai.request(app)
@@ -307,7 +314,8 @@ describe('User endpoints', function() {
             it('should reject non-string usernames', function() {
                 var user = {
                     _id: '000000000000000000000000',
-                    username: 42
+                    username: 42,
+                    password: 'password'
                 };
                 var spy = makeSpy();
                 // Add a user with a non-string username
@@ -360,7 +368,8 @@ describe('User endpoints', function() {
             });
             it('should delete a user', function() {
                 var user = {
-                    username: 'joe'
+                    username: 'joe',
+                    password: 'password'
                 };
                 var userId;
                 // Create a user in the database
