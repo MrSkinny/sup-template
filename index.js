@@ -1,10 +1,31 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var bcrypt = require('./bcrypt-promise');
 var User = require('./models/user');
 var Message = require('./models/message');
 
+var passport = require('passport');
+var BasicStrategy = require('passport-http').BasicStrategy;
+
+var strategy = new BasicStrategy(function(username, password, callback){
+    User.findOne({ username }, function(err, user){
+        if (err) return callback(err);
+        if (!user) return callback(null, false, { message: 'Incorrect username' });
+        
+        user.validatePassword(password)
+            .then(isValid => {
+                if (!isValid) return callback(null, false, { message: 'Incorrect password' });
+                return callback(null, user);
+            })
+            .catch(err => callback(err));
+    })    
+});
+
+passport.use(strategy);
+
 var app = express();
+app.use(passport.initialize());
 
 var jsonParser = bodyParser.json();
 
@@ -24,15 +45,23 @@ app.route('/users')
         if (typeof req.body.username !== 'string') return res.status(422).json({ message: "Incorrect field type: username" });
         if (typeof req.body.password !== 'string') return res.status(422).json({ message: "Incorrect field type: password" });
         
-        User.create({ username: req.body.username, password: req.body.password }, function(err, user){
-            if (err) return res.status(500).json(err);
-            
-            res.status(201).location('/users/' + user._id).json({});
-        });
+        bcrypt.genSalt(10)
+            .then(function(salt) { return bcrypt.hash(req.body.password, salt); })
+            .then(function(hash) {
+                console.log('creating user with', hash);
+                User.create({ username: req.body.username, password: hash }, function(err, user){
+                    if (err) return res.status(500).json(err);
+                    
+                    res.status(201).location('/users/' + user._id).json({});
+                });
+            })
+            .catch(function(err) {
+                return res.status(500).json({ message: "Error with bcrypt", errors: err });
+            });
     });
 
 app.route('/users/:userId')
-    .get(function(req, res){
+    .get(passport.authenticate('basic', { session: false }), function(req, res){
         User.findOne({ _id: req.params.userId })
             .exec(function(err, user){
                 if (!user) return res.status(404).json({ message: "User not found" });
@@ -112,7 +141,6 @@ app.route('/messages/:messageId')
             });
     });
     
-
 
 var runServer = function(callback) {
     var databaseUri = process.env.DATABASE_URI || global.databaseUri || 'mongodb://localhost/sup';
