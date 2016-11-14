@@ -39,9 +39,23 @@ UserSchema.statics.createUser = function(username, password) {
   });
 };
 
-UserSchema.methods.validPassword = function(password) {
-  return new Promise((res) => {
-    return res(password === this.password);
+UserSchema.statics.findOneAndValidate = function(username, password) {
+  return new Promise((res, rej) => {
+    this.findOne({ username })
+      .then(user => {
+        if (!user) return res(null);
+
+        bcrypt.compare(password, user.password, (err, isValid) => {
+          if (err) rej(err);
+          if (!isValid) return res(false);
+
+          return res(user);
+        });
+      })
+      .catch(err => {
+        console.error(err);
+        return rej(err);
+      });
   });
 };
 
