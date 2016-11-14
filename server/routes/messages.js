@@ -7,10 +7,7 @@ messagesRouter
   .route('/')
   .get((req, res) => {
     Message.find()
-      .then(messages => {
-        console.log('msgs:', messages);
-        res.json(messages)
-      })
+      .then(messages => res.json(messages))
       .catch(err => res.sendStatus(500));
   });
 

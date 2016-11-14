@@ -4,10 +4,10 @@ var chai = require('chai');
 var chaiHttp = require('chai-http');
 var mongoose = require('mongoose');
 var UrlPattern = require('url-pattern');
-var app = require('../index').app;
+var app = require('../server').app;
 
-var User = require('../models/user');
-var Message = require('../models/message');
+var User = require('../server/models/user');
+var Message = require('../server/models/message');
 
 var makeSpy = require('./spy');
 
