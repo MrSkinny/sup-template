@@ -1,12 +1,13 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var mongoose = require('mongoose');
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+
+const messagesRouter = require('./routes/messages');
 
 var app = express();
+app.use('/api/v1/messages', messagesRouter);
 
 var jsonParser = bodyParser.json();
-
-// Add your API endpoints here
 
 var runServer = function(callback) {
     var databaseUri = process.env.DATABASE_URI || global.databaseUri || 'mongodb://localhost/sup';
