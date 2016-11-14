@@ -1,25 +1,7 @@
 const express = require('express');
 const usersRouter = express.Router();
 
-const validateUser = function(body) {
-  if (!body.username) {
-    return {
-      error: true,
-      status: 422,
-      body: { message: 'Missing field: username' }
-    };
-  }
-
-  if (typeof body.username !== 'string') {
-    return {
-      error: true,
-      status: 422,
-      body: { message: 'Incorrect field type: username' }
-    };
-  }
-
-  return { error: false };
-};
+const validateUser = require('./validators').validateUser;
 
 const User = require('../models/user');
 usersRouter
