@@ -14,22 +14,22 @@ app.put('*', jsonParser);
 app.use('/api/v1/messages', messagesRouter);
 app.use('/api/v1/users', usersRouter);
 
-const runServer = function(callback) {
-    const databaseUri = process.env.DATABASE_URI || global.databaseUri || 'mongodb://localhost/sup';
-    mongoose.connect(databaseUri).then(() => {
-        const port = process.env.PORT || 8080;
-        const server = app.listen(port, () => {
-            console.log(`Listening on port ${port}`);
-            if (callback) {
-                callback(server);
-            }
-        });
+const runServer = function (callback) {
+  const databaseUri = process.env.DATABASE_URI || global.databaseUri || 'mongodb://localhost/sup';
+  mongoose.connect(databaseUri).then(() => {
+    const port = process.env.PORT || 8080;
+    const server = app.listen(port, () => {
+      console.log(`Listening on port ${port}`);
+      if (callback) {
+        callback(server);
+      }
     });
+  });
 };
 
 if (require.main === module) {
-    runServer();
-};
+  runServer();
+}
 
 exports.app = app;
 exports.runServer = runServer;
