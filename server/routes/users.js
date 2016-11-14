@@ -4,6 +4,7 @@ const usersRouter = express.Router();
 const validateUser = require('./validators').validateUser;
 
 const User = require('../models/user');
+
 usersRouter
   .route('/')
 
@@ -17,12 +18,17 @@ usersRouter
     const validatorResponse = validateUser(req.body);
     if (validatorResponse.error) return res.status(validatorResponse.status).json(validatorResponse.body);
 
-    User.create({ username: req.body.username })
+    User.createUser(req.body.username, req.body.password)
       .then(user => {
         res.set('Location', `/api/v1/users/${user._id}`);
         return res.status(201).json({});
       })
-      .catch(err => res.sendStatus(500));
+      .catch(err => {
+        console.error(err);
+        if (err.status === 400) return res.status(400).json({ message: err.message });
+
+        return res.sendStatus(500);
+      });
   });
 
 usersRouter

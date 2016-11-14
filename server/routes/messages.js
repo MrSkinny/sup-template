@@ -1,10 +1,12 @@
 const express = require('express');
 const messagesRouter = express.Router();
+const passport = require('../config/passport');
 
 const Message = require('../models/message');
 const User = require('../models/user');
 const validateMessage = require('./validators').validateMessage;
 
+messagesRouter.use(passport.authenticate('basic', { session: false }));
 messagesRouter
   .route('/')
   .get((req, res) => {

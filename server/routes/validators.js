@@ -51,5 +51,21 @@ exports.validateUser = function(body) {
     };
   }
 
+  if (!body.password) {
+    return {
+      error: true,
+      status: 422,
+      body: { message: 'Missing field: password' }
+    };
+  }
+
+  if (typeof body.password !== 'string') {
+    return {
+      error: true,
+      status: 422,
+      body: { message: 'Incorrect field type: password' }
+    };
+  }
+
   return { error: false };
 };
