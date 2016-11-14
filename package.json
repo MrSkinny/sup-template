@@ -18,6 +18,8 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "chai-http": "^2.0.1",
+    "eslint": "^3.10.0",
+    "eslint-plugin-react": "^6.6.0",
     "mocha": "^2.4.5",
     "url-pattern": "^1.0.1"
   },

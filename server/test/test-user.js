@@ -18,11 +18,11 @@ describe('User endpoints', function() {
     beforeEach(function(done) {
         // Clear the database
         mongoose.connection.db.dropDatabase(done);
-        this.singlePattern = new UrlPattern('/users/:userId');
-        this.listPattern = new UrlPattern('/users');
+        this.singlePattern = new UrlPattern('/api/v1/users/:userId');
+        this.listPattern = new UrlPattern('/api/v1/users');
     });
 
-    describe('/users', function() {
+    describe('/api/v1/users', function() {
         describe('GET', function() {
             it('should return an empty list of users initially', function() {
                 // Get the list of users
@@ -151,7 +151,7 @@ describe('User endpoints', function() {
         });
     });
 
-    describe('/users/:userId', function() {
+    describe('/api/v1/users/:userId', function() {
         describe('GET', function() {
             it('should 404 on non-existent users', function() {
                 var spy = makeSpy();

@@ -18,8 +18,8 @@ chai.use(chaiHttp);
 describe('Message endpoints', function() {
     var server;
     beforeEach(function(done) {
-        this.listPattern = new UrlPattern('/messages');
-        this.singlePattern = new UrlPattern('/messages/:messageId');
+        this.listPattern = new UrlPattern('/api/v1/messages');
+        this.singlePattern = new UrlPattern('/api/v1/messages/:messageId');
         // Clear the database
         mongoose.connection.db.dropDatabase(function(err, res) {
             // Add three example users
@@ -48,7 +48,7 @@ describe('Message endpoints', function() {
         }.bind(this));
     });
 
-    describe('/messages', function() {
+    describe('/api/v1/messages', function() {
         describe('GET', function() {
             it('should return an empty list of messages initially', function() {
                 // Get the list of messages
@@ -549,7 +549,7 @@ describe('Message endpoints', function() {
         });
     });
 
-    describe('/messages/:messageId', function() {
+    describe('/api/v1/messages/:messageId', function() {
         describe('GET', function() {
             it('should 404 on non-existent messages', function() {
                 var spy = makeSpy();
