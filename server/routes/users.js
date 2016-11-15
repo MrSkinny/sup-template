@@ -1,6 +1,7 @@
 const express = require('express');
 const usersRouter = express.Router();
 const passport = require('../config/passport');
+const bcrypt = require('bcrypt');
 
 const validateUser = require('./validators').validateUser;
 
@@ -51,24 +52,24 @@ usersRouter
   .put(passport.authenticate('basic', { session: false }), (req, res) => {
     const validatorResponse = validateUser(req.body);
     if (validatorResponse.error) return res.status(validatorResponse.status).json(validatorResponse.body);
+    if (!req.user._id.equals(req.params.userId)) return res.sendStatus(401);
 
-    User.findOne({ _id: req.params.userId })
-      .then(user => {
-        if (!user) {
-          return User.create({ _id: req.params.userId, username: req.body.username })
-            .then(() => res.json({}))
-            .catch(() => res.sendStatus(500));
-        }
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(req.body.password, salt, (err, hash) => {
+        User.findOneAndUpdate({ _id: req.user._id }, { username: req.body.username, password: hash })
+          .then(user => {
+            if (!user) return res.status(404).json({ message: 'User not found' });
 
-        user.username = req.body.username;
-        return user.save()
-          .then(() => res.json({}))
+            return res.json({});
+          })
           .catch(() => res.sendStatus(500));
-      })
-      .catch(() => res.sendStatus(500));
+      });
+    });
   })
 
   .delete(passport.authenticate('basic', { session: false }), (req, res) => {
+    if (!req.user._id.equals(req.params.userId)) return res.sendStatus(401);
+    
     User.findOneAndRemove({ _id: req.params.userId })
       .then(user => {
         if (!user) return res.status(404).json({ message: 'User not found' });

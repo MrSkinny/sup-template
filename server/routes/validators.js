@@ -23,14 +23,6 @@ exports.validateMessage = function(body) {
     };
   }
 
-  if (!body.from || typeof body.from !== 'string') {
-    return {
-      error: true,
-      status: 422,
-      body: { message: 'Incorrect field type: from' }
-    };
-  }
-
   return { error: false };
 };
 

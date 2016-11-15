@@ -1,7 +1,7 @@
 const express = require('express');
 const messagesRouter = express.Router();
 const passport = require('../config/passport');
-
+const ObjectID = require('mongodb').ObjectID;
 const Message = require('../models/message');
 const User = require('../models/user');
 const validateMessage = require('./validators').validateMessage;
@@ -37,15 +37,11 @@ messagesRouter
     const validatorRes = validateMessage(req.body);
     if (validatorRes.error) return res.status(validatorRes.status).json(validatorRes.body);
 
-    return User.findOne({ _id: req.body.from })
-      .then(user => {
-        if (!user) throw { status: 422, body: { message: 'Incorrect field value: from' } };
-      })
-      .then(() => User.findOne({ _id: req.body.to }))
+    return User.findOne({ _id: req.body.to })
       .then(user => {
         if (!user) throw { status: 422, body: { message: 'Incorrect field value: to' } };
       })
-      .then(() => Message.create(req.body))
+      .then(() => Message.create(Object.assign({ from: req.user._id }, req.body)))
       .then(message => {
         res.set('location', `/api/v1/messages/${message._id}`);
         res.status(201).json({});
@@ -67,8 +63,9 @@ messagesRouter
       .populate('from to')
       .then(message => {
         if (!message) return res.status(404).json({ message: 'Message not found' });
+        if ( message.from._id.equals(req.user._id) || message.to._id.equals(req.user._id) ) return res.json(message);
 
-        return res.json(message);
+        return res.status(401).json({ message: 'Not Authorized' });
       })
       .catch(() => res.sendStatus(500));
   });
