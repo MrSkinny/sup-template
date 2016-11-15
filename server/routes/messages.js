@@ -10,9 +10,19 @@ messagesRouter.use(passport.authenticate('basic', { session: false }));
 messagesRouter
   .route('/')
   .get((req, res) => {
+    let query = { $or: [
+      { from: req.user._id },
+      { to: req.user._id }
+    ] };
+
+    if (req.query.to) query = { $and: [
+      { from: req.user._id },
+      { to: req.query.to }
+    ] };
+
     Message
-      .find(req.query)
-      .populate('from to')
+      .find(query)
+      .populate('from to', 'username')
       .then(messages => {
         res.json(messages);
       })

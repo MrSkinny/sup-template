@@ -12,7 +12,10 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-UserSchema.statics.createUser = function(username, password) {
+UserSchema.statics.createUser = function(username, password, id) {
+  const newUser = { username };
+  if (id) newUser._id = id;
+
   return new Promise((res, rej) => {
     this.findOne({ username })
       .then(user => {
@@ -23,8 +26,9 @@ UserSchema.statics.createUser = function(username, password) {
 
           return bcrypt.hash(password, salt, (err, hash) => {
             if (err) rej(err);
+            newUser.password = hash;
 
-            return this.create({ username, password: hash }, (err, user) => {
+            return this.create(newUser, (err, user) => {
               if (err) rej(err);
 
               return res(user);
