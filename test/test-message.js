@@ -37,6 +37,8 @@ describe('Message endpoints', function () {
     });
   });
 
+  afterEach(done => mongoose.connection.db.dropDatabase(done));
+
   describe('/api/v1/messages', function () {
     describe('GET', function () {
       it('should return an empty list of messages initially', function () {
@@ -51,33 +53,36 @@ describe('Message endpoints', function () {
             res.charset.should.equal('utf-8');
             res.body.should.be.an('array');
             res.body.length.should.equal(0);
+          })
+          .catch(err => {
+            throw new Error(err);
           });
       });
 
       it('should return a list of messages from or to authenticated user', function () {
-        var messageA = {
+        const messageA = {
           from: alice._id,
           to: bob._id,
           text: 'Hi Bob'
         };
-        var messageB = {
+        const messageB = {
           from: alice._id,
           to: chuck._id,
           text: 'Hi Chuck'
         };
-        var messageC = {
+        const messageC = {
           from: bob._id,
           to: chuck._id,
           text: 'Hi Chuck'
         };
-        var messageD = {
+        const messageD = {
           from: bob._id,
           to: alice._id,
           text: 'Hi Alice'
         };
 
         // Create three messages
-        Message.create([messageA, messageB, messageC, messageD])
+        return Message.create(messageA, messageB, messageC, messageD)
           .then(function (res) {
             // Get the list of messages
             return chai.request(app)
@@ -105,70 +110,54 @@ describe('Message endpoints', function () {
             message.to.should.have.property('username');
             message.to.username.should.equal(bob.username);
 
-          }.bind(this))
-          .catch(err => err);
+          })
+          .catch(err => {
+            throw new Error(err);
+          });
       });
 
-      it('should allow filtering by to', () => {
-        let messageA = {
+      it('with auth user, should filter by to', function() {
+        const message1 = { from: alice._id, to: bob._id, text: 'Hi Bob from Alice' };
+        const message2 = { from: bob._id, to: alice._id, text: 'Hi Alice from Bob' };
+        const message3 = { from: alice._id, to: chuck._id, text: 'Hi Chuck from Alice' };
+
+        return Message.create([ message1, message2, message3 ])
+          .then(() => {
+            return chai.request(app)
+              .get(listPattern.stringify() + '?to=bbbbbbbbbbbbbbbbbbbbbbbb')
+              .auth('alice', 'pw')
+              .then(res => {
+                res.should.have.status(200);
+                res.body.should.be.an('array');
+                res.body.length.should.equal(1);
+                res.body[0].should.be.an('object');
+                res.body[0].should.have.property('text');
+                res.body[0].text.should.eq('Hi Bob from Alice');
+              });
+          })
+          .catch(err => { throw new Error(err); });
+      });
+    });
+
+    describe('POST', function () {
+      it('should return 401 for unauthenticated user', () => {
+        const message = {
           from: alice._id,
           to: bob._id,
           text: 'Hi Bob'
         };
-        let messageB = {
-          from: alice._id,
-          to: chuck._id,
-          text: 'Hi Chuck'
-        };
-        let messageC = {
-          from: bob._id,
-          to: chuck._id,
-          text: 'Hi Chuck'
-        };
 
-        // Create three messages
-        messageA = new Message(messageA);
-        messageB = new Message(messageB);
-        messageC = new Message(messageC);
-
-        // Save them to the database
-        Message.create([ messageA, messageB, messageC ])
-          .then((res) => {
-            // Get the list of messages to Chuck
-            const url = listPattern.stringify() + '?to=' + bob._id;
-            return chai.request(app)
-              .get(url)
-              .auth('alice', 'pw');
-          })
-          .then(function (res) {
-            // Check that the correct messages are in the array
-            res.should.have.status(200);
-            res.type.should.equal('application/json');
-            res.charset.should.equal('utf-8');
-            res.body.should.be.an('array');
-            res.body.length.should.equal(1);
-
-            var message = res.body[0];
-            message.should.be.an('object');
-            message.should.have.property('text');
-            message.text.should.be.a('string');
-            message.text.should.equal(messageB.text);
-            message.should.have.property('to');
-            message.from.should.be.an('object');
-            message.from.should.have.property('username');
-            message.from.username.should.equal(alice.username);
-            message.to.should.be.an('object');
-            message.to.should.have.property('username');
-            message.to.username.should.equal(bob.username);
+        return chai.request(app)
+          .post(listPattern.stringify())
+          .send(message)
+          .catch(err => {
+            const res = err.response;
+            res.should.have.status(401);
           });
       });
 
-    });
-
-    describe('POST', function () {
-      it('should allow adding a message from authenticated user', () => {
-        var message = {
-          from: alice._id,
+      it('with auth user, should allow adding a message', () => {
+        const message = {
           to: bob._id,
           text: 'Hi Bob'
         };
@@ -186,7 +175,7 @@ describe('Message endpoints', function () {
             res.body.should.be.an('object');
             res.body.should.be.empty;
 
-            var params = singlePattern.match(res.headers.location);
+            const params = singlePattern.match(res.headers.location);
             // Fetch the message from the database, using the ID
             // from the location header
             return Message.findById(params.messageId).exec();
@@ -205,16 +194,17 @@ describe('Message endpoints', function () {
           });
       });
 
-      it('should reject messages without text', function () {
-        ;
-        var message = {
+      it('with auth user, should reject messages without text', function () {
+        const message = {
           from: alice._id,
           to: bob._id
         };
+
         var spy = makeSpy();
         // Add a message without text
         return chai.request(app)
           .post(listPattern.stringify())
+          .auth('alice', 'pw')
           .send(message)
           .then(spy)
           .catch(function (err) {
@@ -234,17 +224,17 @@ describe('Message endpoints', function () {
           });
       });
 
-      it('should reject non-string text', function () {
-        ;
-        var message = {
-          from: alice._id,
+      it('with auth user, should reject non-string text', function () {
+        const message = {
           to: bob._id,
           text: 42
         };
-        var spy = makeSpy();
+        const spy = makeSpy();
+
         // Add a message with non-string text
         return chai.request(app)
           .post(listPattern.stringify())
+          .auth('alice', 'pw')
           .send(message)
           .then(spy)
           .catch(function (err) {
@@ -264,16 +254,16 @@ describe('Message endpoints', function () {
           });
       });
 
-      it('should reject non-string to', function () {
-        var message = {
-          from: alice._id,
+      it('with auth user, should reject non-string to', function () {
+        const message = {
           to: 42,
           text: 'Hi Bob'
         };
-        var spy = makeSpy();
+        const spy = makeSpy();
         // Add a message with non-string to
         return chai.request(app)
           .post(listPattern.stringify())
+          .auth('alice', 'pw')
           .send(message)
           .then(spy)
           .catch(function (err) {
@@ -293,22 +283,22 @@ describe('Message endpoints', function () {
           });
       });
 
-      it('should reject messages to non-existent users', function () {
-        var message = {
-          from: alice._id,
+      it('with auth user, should reject messages to non-existent users', function () {
+        const message = {
           to: 'dddddddddddddddddddddddd',
           text: 'Hi Dan'
         };
-        var spy = makeSpy();
+        const spy = makeSpy();
         // Add a message to a non-existent user
         return chai.request(app)
           .post(listPattern.stringify())
+          .auth('alice', 'pw')
           .send(message)
           .then(spy)
           .catch(function (err) {
             // If the request fails, make sure it contains the
             // error
-            var res = err.response;
+            const res = err.response;
             res.should.have.status(422);
             res.type.should.equal('application/json');
             res.charset.should.equal('utf-8');
@@ -326,11 +316,24 @@ describe('Message endpoints', function () {
 
   describe('/api/v1/messages/:messageId', function () {
     describe('GET', function () {
-      it('should 404 on non-existent messages', function () {
+      it('should 401 with unauth user', () => {
+        const spy = makeSpy();
+        return chai.request(app)
+          .delete(singlePattern.stringify({ messageId: '1' }))
+          .then(spy)
+          .then(() => spy.called.should.be.false)
+          .catch(err => {
+            const res = err.response;
+            res.should.have.status(401);
+          });
+      });
+      
+      it('with auth user, should 404 on non-existent messages', function () {
         var spy = makeSpy();
         // Get a message which doesn't exist
         return chai.request(app)
           .get(singlePattern.stringify({ messageId: '000000000000000000000000' }))
+          .auth('alice', 'pw')
           .then(spy)
           .catch(function (err) {
             // If the request fails, make sure it contains the
@@ -349,13 +352,13 @@ describe('Message endpoints', function () {
           });
       });
       
-      it('should return a single message', function () {
-        var message = {
+      it('with auth user, should return a single message', function () {
+        const message = {
           from: alice._id,
           to: bob._id,
           text: 'Hi Bob'
         };
-        var messageId;
+        let messageId;
         // Add a message to the database
         return new Message(message).save()
           .then(function (res) {
@@ -364,8 +367,9 @@ describe('Message endpoints', function () {
             return chai.request(app)
               .get(singlePattern.stringify({
                 messageId: messageId
-              }));
-          }.bind(this))
+              }))
+              .auth('alice', 'pw');
+          })
           .then(function (res) {
             // Check that the message is returned
             res.should.have.status(200);
@@ -383,7 +387,7 @@ describe('Message endpoints', function () {
             res.body.to.should.be.an('object');
             res.body.to.should.have.property('username');
             res.body.to.username.should.equal(bob.username);
-          }.bind(this));
+          });
       });
     });
   });

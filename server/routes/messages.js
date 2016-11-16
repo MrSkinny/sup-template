@@ -1,7 +1,6 @@
 const express = require('express');
 const messagesRouter = express.Router();
 const passport = require('../config/passport');
-const ObjectID = require('mongodb').ObjectID;
 const Message = require('../models/message');
 const User = require('../models/user');
 const validateMessage = require('./validators').validateMessage;
@@ -53,7 +52,7 @@ messagesRouter
         return res.sendStatus(500);
       });
 
-  })
+  });
 
 messagesRouter
   .route('/:messageId')

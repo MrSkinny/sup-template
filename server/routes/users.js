@@ -52,7 +52,7 @@ usersRouter
   .put(passport.authenticate('basic', { session: false }), (req, res) => {
     const validatorResponse = validateUser(req.body);
     if (validatorResponse.error) return res.status(validatorResponse.status).json(validatorResponse.body);
-    if (!req.user.username.equals(req.params.username)) return res.sendStatus(401);
+    if (req.user.username !== req.params.username) return res.sendStatus(401);
 
     bcrypt.genSalt(10, (err, salt) => {
       bcrypt.hash(req.body.password, salt, (err, hash) => {
@@ -66,17 +66,5 @@ usersRouter
       });
     });
   })
-
-  .delete(passport.authenticate('basic', { session: false }), (req, res) => {
-    if (!req.user.username.equals(req.params.username)) return res.sendStatus(401);
-    
-    User.findOneAndRemove({ username: req.params.username })
-      .then(user => {
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        return res.json({});
-      })
-      .catch(() => res.sendStatus(500));
-  });
 
 module.exports = usersRouter;
