@@ -1,6 +1,6 @@
 # Sup - a messaging API
 
-Sup is a simple messaging API.  Users can be created, updated, edited, and deleted.  Messages can be sent between any two users of Sup.
+Sup is a simple messaging API.  Users can be fetched, created, and updated.  Messages can be sent between any two users of Sup. All endpoints require authentication via a Basic Authorization Header unless otherwise specified.
 
 ## API Documentation
 
@@ -49,7 +49,7 @@ An array of all users.
 ***
 
 ```
-POST /users
+POST /users (no auth required)
 ```
 
 Add a user to Sup
@@ -84,19 +84,19 @@ An empty object.
 < }
 ```
 
-#### `/users/:userId`
+#### `/users/:username`
 
 Endpoint representing a single user of Sup.
 
 ```
-GET /users/:userId
+GET /users/:username
 ```
 
 Get a single user of Sup.
 
 *URL parameters*:
 
-* `userId` - The ObjectId of the user.
+* `username` - The username of the user.
 
 *Data parameters*:
 
@@ -113,26 +113,26 @@ A JSON object of the user.
 *Example*:
 
 ```
-> GET /users/000000000000000000000000
+> GET /users/joe
 
 < Status: 200 OK
 < {
 <     "_id": "000000000000000000000000",
-<     "username": "alice"
+<     "username": "joe"
 < }
 ```
 
 ***
 
 ```
-PUT /users/:userId
+PUT /users/:username
 ```
 
-Add or edit a Sup user.
+Add or edit a Sup user. A user can only edit his own object.
 
 *URL parameters*:
 
-* `userId` - The ObjectId of the user to add or edit.
+* `username` - The username of the user to add or edit.
 
 *Data parameters*:
 
@@ -149,7 +149,7 @@ An empty object.
 *Example*:
 
 ```
-> PUT /users/0000000000000000000000000
+> PUT /users/alice
 > {
 >     "username": "alice"
 > }
@@ -162,14 +162,14 @@ An empty object.
 ***
 
 ```
-DELETE /users/:userId
+DELETE /users/:username
 ```
 
 Delete a Sup user.
 
 *URL parameters*:
 
-* `userId` - The ObjectId of the user to delete.
+* `username` - The username of the user to delete.
 
 *Data parameters*:
 
@@ -186,7 +186,7 @@ An empty object.
 *Example*:
 
 ```
-> DELETE /users/0000000000000000000000000
+> DELETE /users/alice
 
 < Status: 200 OK
 < {
@@ -197,7 +197,7 @@ An empty object.
 
 #### `/messages`
 
-Endpoint representing all messages in Sup.
+Endpoint representing all messages in Sup. Returns only messages where authenticated user is either sender or recipient.
 
 ```
 GET /messages
@@ -215,7 +215,6 @@ None
 
 *Query string parameters*:
 
-* `from` - Only select messages from the user with the corresponding ObjectId
 * `to` - Only select messages to the user with the corresponding ObjectId
 
 *Returns*:
@@ -258,7 +257,9 @@ None
 
 *Data parameters*:
 
-* The message to add, with a sender and recipient
+Message object, includes:
+- text (String)
+- to (ObjectID)
 
 *Query string parameters*:
 
@@ -274,7 +275,6 @@ An empty object.
 > POST /messages
 > {
 >     "text": "Hi Bob",
->     "from": "0000000000000000000000000",
 >     "to": "1111111111111111111111111"
 > }
 
@@ -286,7 +286,7 @@ An empty object.
 
 #### `/message/:messageId`
 
-Endpoint representing a single message.
+Endpoint representing a single message. Only an authenticated sender or recipient can fetch the message.
 
 ```
 GET /messages/:messageId
