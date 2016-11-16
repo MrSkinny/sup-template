@@ -23,7 +23,7 @@ usersRouter
 
     User.createUser(req.body.username, req.body.password)
       .then(user => {
-        res.set('Location', `/api/v1/users/${user._id}`);
+        res.set('Location', `/api/v1/users/${user.username}`);
         return res.status(201).json({});
       })
       .catch(err => {
@@ -35,10 +35,10 @@ usersRouter
   });
 
 usersRouter
-  .route('/:userId')
+  .route('/:username')
 
   .get(passport.authenticate('basic', { session: false }), (req, res) => {
-    User.findOne({ _id: req.params.userId })
+    User.findOne({ username: req.params.username })
       .select('username')
       .then(user => {
         if (!user) return res.status(404).json({ message: 'User not found' });
@@ -52,11 +52,11 @@ usersRouter
   .put(passport.authenticate('basic', { session: false }), (req, res) => {
     const validatorResponse = validateUser(req.body);
     if (validatorResponse.error) return res.status(validatorResponse.status).json(validatorResponse.body);
-    if (!req.user._id.equals(req.params.userId)) return res.sendStatus(401);
+    if (!req.user.username.equals(req.params.username)) return res.sendStatus(401);
 
     bcrypt.genSalt(10, (err, salt) => {
       bcrypt.hash(req.body.password, salt, (err, hash) => {
-        User.findOneAndUpdate({ _id: req.user._id }, { username: req.body.username, password: hash })
+        User.findOneAndUpdate({ username: req.user.username }, { username: req.body.username, password: hash })
           .then(user => {
             if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -68,9 +68,9 @@ usersRouter
   })
 
   .delete(passport.authenticate('basic', { session: false }), (req, res) => {
-    if (!req.user._id.equals(req.params.userId)) return res.sendStatus(401);
+    if (!req.user.username.equals(req.params.username)) return res.sendStatus(401);
     
-    User.findOneAndRemove({ _id: req.params.userId })
+    User.findOneAndRemove({ username: req.params.username })
       .then(user => {
         if (!user) return res.status(404).json({ message: 'User not found' });
 
