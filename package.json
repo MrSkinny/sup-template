@@ -6,6 +6,9 @@
   "directories": {
     "test": "tests"
   },
+  "engines": {
+    "node": ">=6.9.1"
+  },
   "scripts": {
     "start": "node index.js",
     "test": "mocha --no-colors"
