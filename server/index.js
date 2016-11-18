@@ -3,8 +3,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const jsonParser = bodyParser.json();
 const passport = require('./config/passport');
-const corsOptions = require('./config/corsOptions');
-const cors = require('cors');
+const allowCrossDomain = require('./config/allowCrossDomain');
 
 mongoose.Promise = global.Promise;
 
@@ -16,12 +15,12 @@ const getCustomPort = () => process.argv[2] && !isNaN(Number(process.argv[2])) ?
 const CUSTOM_PORT = getCustomPort();
 
 const app = express();
-app.use(cors(corsOptions));
+app.use('/api/v1/*', allowCrossDomain);
+app.use(passport.initialize());
 app.post('*', jsonParser);
 app.put('*', jsonParser);
 app.use('/api/v1/messages', messagesRouter);
 app.use('/api/v1/users', usersRouter);
-app.use(passport.initialize());
 
 const runServer = function (callback) {
   const databaseUri = process.env.DATABASE_URI || global.databaseUri || 'mongodb://localhost/sup';
