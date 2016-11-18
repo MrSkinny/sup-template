@@ -16,8 +16,7 @@ const getCustomPort = () => process.argv[2] && !isNaN(Number(process.argv[2])) ?
 const CUSTOM_PORT = getCustomPort();
 
 const app = express();
-// Don't do CORS when running tests!
-if (require.main === module) app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 app.post('*', jsonParser);
 app.put('*', jsonParser);
 app.use('/api/v1/messages', messagesRouter);
