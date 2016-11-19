@@ -6,12 +6,12 @@ Sup is a simple messaging API.  Users can be fetched, created, and updated.  Mes
 
 ### Users endpoints
 
-#### `/users`
+#### `/api/v1/users`
 
 Endpoint representing all users of Sup.
 
 ```
-GET /users
+GET /api/v1/users
 ```
 
 Get an array of all users of Sup.
@@ -35,7 +35,7 @@ An array of all users.
 *Example*:
 
 ```
-> GET /users
+> GET /api/v1/users
 
 < Status: 200 OK
 < [
@@ -49,7 +49,7 @@ An array of all users.
 ***
 
 ```
-POST /users (no auth required)
+POST /api/v1/users (no auth required)
 ```
 
 Add a user to Sup
@@ -60,7 +60,9 @@ None
 
 *Data parameters*:
 
-* The user to add
+User object:
+- username (String, required)
+- password (ObjectID, required)
 
 *Query string parameters*:
 
@@ -73,7 +75,7 @@ An empty object.
 *Example*:
 
 ```
-> POST /users
+> POST /api/v1/users
 > {
 >     "username": "alice"
 > }
@@ -84,12 +86,12 @@ An empty object.
 < }
 ```
 
-#### `/users/:username`
+#### `/api/v1/users/:username`
 
 Endpoint representing a single user of Sup.
 
 ```
-GET /users/:username
+GET /api/v1/users/:username
 ```
 
 Get a single user of Sup.
@@ -113,7 +115,7 @@ A JSON object of the user.
 *Example*:
 
 ```
-> GET /users/joe
+> GET /api/v1/users/joe
 
 < Status: 200 OK
 < {
@@ -125,7 +127,7 @@ A JSON object of the user.
 ***
 
 ```
-PUT /users/:username
+PUT /api/v1/users/:username
 ```
 
 Add or edit a Sup user. A user can only edit his own object.
@@ -149,8 +151,9 @@ An empty object.
 *Example*:
 
 ```
-> PUT /users/alice
+> PUT /api/v1/users/alice
 > {
+>     "_id": "000000000000000000000"
 >     "username": "alice"
 > }
 
@@ -195,12 +198,12 @@ An empty object.
 
 ### Messages endpoints
 
-#### `/messages`
+#### `/api/v1/messages`
 
 Endpoint representing all messages in Sup. Returns only messages where authenticated user is either sender or recipient.
 
 ```
-GET /messages
+GET /api/v1/messages
 ```
 
 Get an array of messages in Sup.
@@ -224,7 +227,7 @@ An array of messages.
 *Example*:
 
 ```
-> GET /messages
+> GET /api/v1/messages
 
 < Status: 200 OK
 < [
@@ -246,7 +249,7 @@ An array of messages.
 ***
 
 ```
-POST /messages
+POST /api/v1/messages
 ```
 
 Add a message.
@@ -258,8 +261,8 @@ None
 *Data parameters*:
 
 Message object, includes:
-- text (String)
-- to (ObjectID)
+- text (String, required)
+- to (ObjectID, required)
 
 *Query string parameters*:
 
@@ -272,7 +275,7 @@ An empty object.
 *Example*:
 
 ```
-> POST /messages
+> POST /api/v1/messages
 > {
 >     "text": "Hi Bob",
 >     "to": "1111111111111111111111111"
@@ -284,12 +287,12 @@ An empty object.
 < }
 ```
 
-#### `/message/:messageId`
+#### `/api/v1/message/:messageId`
 
 Endpoint representing a single message. Only an authenticated sender or recipient can fetch the message.
 
 ```
-GET /messages/:messageId
+GET /api/v1/messages/:messageId
 ```
 
 Get a single message.
@@ -313,7 +316,7 @@ A JSON object of the message.
 *Example*:
 
 ```
-> GET /messages/000000000000000000000000
+> GET /api/v1/messages/000000000000000000000000
 
 < Status: 200 OK
 < {
